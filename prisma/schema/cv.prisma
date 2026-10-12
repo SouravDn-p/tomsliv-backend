@@ -1,0 +1,90 @@
+model CV {
+  id String @id @default(uuid())
+
+  isSaved Boolean @default(false)
+
+  firstName String
+  lastName  String
+
+  email    String
+  phone    String
+  location String
+  summary  String?
+
+  jobTitle     String?
+  jobType      JobType?
+  availability DateTime?
+
+  hasDrivingLicense  Boolean @default(false)
+  eligibleToWorkInNZ Boolean @default(false)
+
+  workPermitType WorkPermitType @default(CITIZENSHIP)
+
+  customCVId String?       @unique
+  customCV   FileInstance? @relation("CVFile", fields: [customCVId], references: [id], onDelete: SetNull)
+
+  customCoverLetterId String?       @unique
+  customCoverLetter   FileInstance? @relation("CoverLetterFile", fields: [customCoverLetterId], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+
+  userId          String?
+  user            User?            @relation("UserCVs", fields: [userId], references: [id])
+  savedBy         User?            @relation("SavedCV")
+  experiences     Experience[]
+  educations      Education[]
+  jobApplications JobApplication[]
+
+  @@map("cvs")
+}
+
+enum WorkPermitType {
+  CITIZENSHIP
+  RESIDENT_VISA
+  NZ_CITIZEN
+  NZ_RESIDENT
+  WORK_VISA
+  STUDENT_VISA
+  OTHER
+}
+
+model Experience {
+  id String @id @default(uuid())
+
+  cv   CV     @relation(fields: [cvId], references: [id], onDelete: Cascade)
+  cvId String
+
+  jobTitle String
+  jobType  JobType?
+  company  String
+  summary  String
+
+  startDate DateTime
+  endDate   DateTime?
+  isOngoing Boolean   @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+
+  @@map("experiences")
+}
+
+model Education {
+  id String @id @default(uuid())
+
+  cv   CV     @relation(fields: [cvId], references: [id], onDelete: Cascade)
+  cvId String
+
+  degree      String
+  institution String
+
+  startDate DateTime
+  endDate   DateTime?
+  isOngoing Boolean   @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+
+  @@map("educations")
+}

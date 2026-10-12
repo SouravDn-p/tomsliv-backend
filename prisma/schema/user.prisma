@@ -1,0 +1,104 @@
+model User {
+  id String @id @default(uuid())
+
+  // Identity @unique
+  name     String  @default("Unnamed User")
+  email    String  @unique
+  phone    String? @unique
+  password String // hashed password
+
+  // Settings
+  role       UserRole
+  status     UserStatus @default(ACTIVE)
+  isVerified Boolean    @default(false)
+
+  // Promotional Status
+  isEarlyAdopter            Boolean @default(false)
+  earlyAdopterDiscountUsage Int     @default(0)
+
+  // Activity
+  lastLoginAt  DateTime?
+  lastActiveAt DateTime?
+
+  // Avatar
+  profilePictureId String?       @unique
+  profilePicture   FileInstance? @relation(fields: [profilePictureId], references: [id], onDelete: SetNull)
+
+  // Farm
+  farmId String? @unique
+  farm   Farm?   @relation(fields: [farmId], references: [id], onDelete: SetNull)
+
+  // Saved CV
+  savedCVId String? @unique
+  savedCV   CV?     @relation("SavedCV", fields: [savedCVId], references: [id], onDelete: SetNull)
+
+  // Notification Settings
+  notificationSettingsId String?               @unique
+  notificationSettings   NotificationSettings? @relation(fields: [notificationSettingsId], references: [id], onDelete: Cascade)
+
+  // Relations
+  notifications   UserNotification[]
+  refreshTokens   RefreshToken[]
+  otps            UserOtp[]
+  jobApplications JobApplication[]
+  savedJobs       SavedJobs[]
+  cvs             CV[]               @relation("UserCVs")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+
+  userSubscriptions UserSubscription[]
+  invoices          Invoice[]
+
+  // Subscription
+  stripeCustomerId             String?             @unique
+  stripeDefaultPaymentMethodId String?             @unique
+  subscriptionStatus           SubscriptionStatus?
+
+  @@map("users")
+}
+
+enum UserRole {
+  SUPER_ADMIN
+  ADMIN
+  FARM_OWNER
+  USER
+}
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+  DELETED
+}
+
+model Farm {
+  id String @id @default(uuid())
+
+  name        String
+  location    String?
+  description String?
+  website     String?
+
+  herdSize Int?
+  farmType String?
+
+  // Logo
+  logoId String?       @unique
+  logo   FileInstance? @relation(fields: [logoId], references: [id], onDelete: SetNull)
+
+  jobs  Job[]
+  users User?
+
+  status FarmStatus @default(ACTIVE)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+
+  @@map("farms")
+}
+
+enum FarmStatus {
+  ACTIVE
+  INACTIVE
+  DELETED
+}

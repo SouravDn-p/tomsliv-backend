@@ -1,0 +1,42 @@
+model IdealCandidate {
+  id String @id @default(uuid())
+
+  job   Job    @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  jobId String @unique
+
+  minimumExperienceYears Int
+  // maximumExperienceYears Int    @default(0)
+
+  coreSkills String[]
+
+  desiredPersonalityTraits DesiredPersonalityTrait[]
+  nonNegotiableSkills      String[]
+
+  recruiterValues   String[]
+  recruiterHobbies  String[]
+  recruiterPassions String[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+
+  @@map("ideal_candidates")
+}
+
+enum DesiredPersonalityTrait {
+  DETAIL_ORIENTED
+  TEAM_PLAYER
+  SELF_MOTIVATED
+  PROBLEM_SOLVER
+  ADAPTABLE
+  RELIABLE
+  PATIENT
+  PHYSICAL_STAMINA
+  HONESTY
+  LOYALTY
+  HARD_WORKING
+  COMMITTED
+  RESILIENT
+  POSITIVE_ATTITUDE
+  INITIATIVE
+  PUNCTUAL
+}

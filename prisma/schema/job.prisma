@@ -1,0 +1,97 @@
+model Job {
+  id String @id @default(uuid())
+
+  title       String
+  description String?
+  benefits    String?
+
+  farmSize    Int
+  herdSize    Int
+  onFarmStaff Int
+
+  location String?
+  jobType  JobType
+  role     String
+
+  numberOfPositions  Int
+  requiredExperience Int
+
+  applicationDeadline DateTime
+  positionStartDate   DateTime
+
+  // hourType     HourType?
+  hoursPerWeek Float
+
+  roster             String
+  remunerationPaidBy String
+
+  remunerationType  SalaryType
+  remunerationStart Float?
+  remunerationEnd   Float?
+
+  totalPackageValue      Float?
+  perKgMSDollarValue     Float?
+  percentageOfMilkCheque Float?
+
+  farm   Farm   @relation(fields: [farmId], references: [id], onDelete: Cascade)
+  farmId String
+
+  status JobStatus @default(ACTIVE)
+  pricePaid Float?
+  paidAt   DateTime?
+
+  idealCandidates IdealCandidate?
+  jobApplications JobApplication[]
+  savedJobs       SavedJobs[]
+
+  viewCount Int @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+
+  @@index([location])
+  @@index([jobType])
+  @@index([requiredExperience])
+  @@index([applicationDeadline])
+  @@map("jobs")
+}
+
+enum JobType {
+  FIXED_TERM
+  FULL_TIME
+  PART_TIME
+  CONTRACT
+  SEASONAL
+  TEMPORARY
+  INTERN
+  CASUAL
+}
+
+enum JobStatus {
+  DRAFT
+  ACTIVE
+  PAUSED
+  CLOSED
+  SUSPENDED
+  PENDING_PAYMENT
+}
+
+enum PrimaryLocation {
+  SINGLE_FARM
+  MULTI_FARM
+  CORPORATE_FARM
+}
+
+enum SalaryType {
+  HOURLY
+  DAILY
+  WEEKLY
+  MONTHLY
+  YEARLY
+}
+
+enum HourType {
+  week
+  season
+  negotiable
+}

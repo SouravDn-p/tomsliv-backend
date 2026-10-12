@@ -1,0 +1,80 @@
+model SubscriptionPlan {
+  id String @id @default(uuid())
+
+  stripeProductId String @unique
+  stripePriceId   String @unique
+
+  title       String
+  description String?
+  priceCents  Int
+  currency    String  @default("usd")
+  isActive    Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+
+  userSubscriptions UserSubscription[]
+
+  @@map("subscription_plans")
+}
+
+model UserSubscription {
+  id String @id @default(uuid())
+
+  stripeSubscriptionId String? @unique
+  stripeTransactionId  String  @unique
+
+  userId String
+  planId String
+  status SubscriptionStatus @default(PENDING)
+
+  startedAt DateTime @default(now())
+  endedAt   DateTime
+
+  paidAt   DateTime?
+  failedAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+
+  plan     SubscriptionPlan @relation(fields: [planId], references: [id], onDelete: Cascade)
+  user     User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  invoices Invoice[]
+
+  @@index([userId])
+  @@index([planId])
+  @@map("user_subscriptions")
+}
+
+model Invoice {
+  id String @id @default(uuid())
+
+  stripeInvoiceId String @unique
+
+  amount   Int
+  currency String        @default("usd")
+  status   InvoiceStatus @default(PENDING)
+  issuedAt DateTime      @default(now())
+  paidAt   DateTime?
+
+  userSubscriptionId String
+  subscription       UserSubscription @relation(fields: [userSubscriptionId], references: [id], onDelete: Cascade)
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("invoices")
+}
+
+enum SubscriptionStatus {
+  PENDING
+  ACTIVE
+  CANCELED
+  FAILED
+}
+
+enum InvoiceStatus {
+  PENDING
+  PAID
+  FAILED
+}

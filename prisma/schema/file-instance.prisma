@@ -1,0 +1,32 @@
+model FileInstance {
+  id String @id @default(uuid())
+
+  filename         String
+  originalFilename String
+  path             String
+  url              String
+  fileType         FileType @default(any)
+  mimeType         String
+  size             Int
+
+  users User?
+  farms Farm?
+
+  cvs          CV? @relation("CVFile")
+  coverLetters CV? @relation("CoverLetterFile")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+
+  @@map("file_instances")
+}
+
+enum FileType {
+  image
+  docs
+  link
+  document
+  any
+  video
+  audio
+}

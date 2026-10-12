@@ -1,0 +1,2 @@
+chmod +x backup_db.sh
+chmod +x restore_db.sh

@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Stripe Payment Test</title>
+    <script src="https://js.stripe.com/v3/"></script>
+    <style>
+      body {
+        font-family:
+          -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu,
+          Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+        padding: 40px;
+        max-width: 500px;
+        margin: 0 auto;
+        background-color: #f7f9fc;
+      }
+      h1 {
+        text-align: center;
+        color: #333;
+      }
+      input,
+      button {
+        display: block;
+        width: 100%;
+        margin-bottom: 15px;
+        padding: 12px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        box-sizing: border-box;
+      }
+      button {
+        background-color: #5469d4;
+        color: white;
+        border: none;
+        cursor: pointer;
+        font-weight: bold;
+      }
+      button:hover {
+        background-color: #4355b9;
+      }
+      #payment-element {
+        margin-bottom: 20px;
+        background: white;
+        padding: 10px;
+        border-radius: 4px;
+      }
+      #message {
+        margin-top: 20px;
+        color: #fa755a;
+        text-align: center;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Stripe Payment Test</h1>
+
+    <label for="pk">Stripe Publishable Key</label>
+    <input type="text" id="pk" placeholder="pk_test_..." value="" />
+
+    <label for="client-secret">Client Secret</label>
+    <input type="text" id="client-secret" placeholder="pi_..._secret_..." />
+
+    <button onclick="initialize()" id="init-btn">
+      Initialize Payment Element
+    </button>
+
+    <div
+      id="payment-form"
+      style="display: none; border-top: 2px solid #eee; padding-top: 20px"
+    >
+      <h3>Complete Payment</h3>
+      <div id="payment-element">
+        <!-- Stripe Elements will be inserted here -->
+      </div>
+      <button id="submit" onclick="pay()">Pay Now</button>
+      <div id="message"></div>
+    </div>
+
+    <script>
+      let stripe, elements;
+
+      async function initialize() {
+        const pk = document.getElementById('pk').value.trim();
+        const clientSecret = document
+          .getElementById('client-secret')
+          .value.trim();
+
+        if (!pk || !clientSecret) {
+          alert('Please enter both the Publishable Key and Client Secret.');
+          return;
+        }
+
+        try {
+          // Initialize Stripe
+          stripe = Stripe(pk);
+
+          // Initialize Elements with the Client Secret
+          elements = stripe.elements({
+            clientSecret,
+            appearance: {
+              theme: 'stripe',
+            },
+          });
+
+          // Create and Mount Payment Element
+          const paymentElement = elements.create('payment');
+          paymentElement.mount('#payment-element');
+
+          // Show the form
+          document.getElementById('payment-form').style.display = 'block';
+          document.getElementById('init-btn').style.display = 'none';
+        } catch (e) {
+          console.error(e);
+          alert('Failed to initialize Stripe. Check your keys.');
+        }
+      }
+
+      async function pay() {
+        const submitBtn = document.getElementById('submit');
+        submitBtn.disabled = true;
+        submitBtn.innerText = 'Processing...';
+
+        const { error } = await stripe.confirmPayment({
+          elements,
+          confirmParams: {
+            // Return URL where the user is redirected after the payment
+            return_url: window.location.href,
+          },
+        });
+
+        if (error) {
+          // Show error to your customer
+          const messageContainer = document.querySelector('#message');
+          messageContainer.textContent = error.message;
+          submitBtn.disabled = false;
+          submitBtn.innerText = 'Pay Now';
+        } else {
+          // Your customer will be redirected to your `return_url`. For some payment
+          // methods like iDEAL, your customer will be redirected to an intermediate
+          // site first to authorize the payment, then redirected to the `return_url`.
+        }
+      }
+
+      // Check for success redirect
+      const clientSecret = new URLSearchParams(window.location.search).get(
+        'payment_intent_client_secret',
+      );
+      if (clientSecret) {
+        document.body.innerHTML =
+          "<h1 style='color:green; text-align:center;'>Payment Succeeded!</h1><p style='text-align:center;'>Check your backend logs for webhook confirmation.</p><a href='payment_test.html' style='display:block;text-align:center;'>Test Another</a>";
+      }
+    </script>
+  </body>
+</html>
